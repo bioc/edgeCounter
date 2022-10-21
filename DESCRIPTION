@@ -1,0 +1,15 @@
+Package: edgeCounter
+Title: Counting edges of BAM alignment against a GRanges object
+Version: 0.0.1
+Authors@R: 
+    person("Ye", "Yuan", , "yeyu@umich.edu", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-9641-9102"))
+Description: Given a BAM alignment file, each read pair will have two edges/ends.
+    Given a 'GRanges' object, this package counts number of read pair edges that overlaps within
+    each range of the 'GRanges'. The resulting counts could be used for downstream differential analysis
+    such as 'DESeq2'.
+    Useful for certain genomic sequencing applications, e.g., ATAC-seq.
+License: GPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.1
