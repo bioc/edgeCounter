@@ -1,3 +1,5 @@
+# Main functions for counting edges
+
 #' Get edges of BAM alignment reads
 #'
 #' @description
