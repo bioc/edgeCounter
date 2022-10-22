@@ -5,13 +5,28 @@ Authors@R:
     person("Ye", "Yuan", , "yeyu@umich.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9641-9102"))
 Description: Given a BAM alignment file, each read pair will have two edges/ends.
-    Given a 'GRanges' object, this package counts number of read pair edges that overlaps within
-    each range of the 'GRanges'. The resulting counts could be used for downstream differential analysis
-    such as 'DESeq2'.
-    Useful for certain genomic sequencing applications, e.g., ATAC-seq.
+    This package counts number of read pair edges that overlaps within
+    each range of the 'GRanges'.
+    This package contains a complete example for ATAC sequencing quantification.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
 URL: https://github.com/yeyuan98/edgeCounter
 BugReports: https://github.com/yeyuan98/edgeCounter/issues
+Imports: 
+    BiocIO,
+    GenomicRanges,
+    IRanges,
+    Rsamtools
+biocViews:
+    Sequencing,
+    DNASeq,
+    ATACSeq,
+    GeneRegulation,
+    QualityControl,
+    Coverage,
+    NucleosomePositioning
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
