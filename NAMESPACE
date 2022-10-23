@@ -3,4 +3,6 @@
 export(bamEdges)
 export(consensusGRanges)
 export(countEdges)
+export(importBED)
+export(makeGRanges)
 export(readNarrowPeaks)

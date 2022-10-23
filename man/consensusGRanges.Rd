@@ -4,10 +4,12 @@
 \alias{consensusGRanges}
 \title{Compute 'consensus' GRanges from a list of GRanges objects}
 \usage{
-consensusGRanges(grs)
+consensusGRanges(grs, minimum.width = 100)
 }
 \arguments{
 \item{grs}{A list of GRanges objects, could be length 1 or more.}
+
+\item{minimum.width}{Minimum width of the consensus ranges.}
 }
 \value{
 A GRanges object consisting the consensus ranges.
@@ -16,7 +18,10 @@ A GRanges object consisting the consensus ranges.
 \code{consensusGRanges()} computes consensus GRanges from a list of
 GRanges objects. Definition of 'consensus' is explained in Details section.
 }
-\section{Consensus algorithm TODO}{
+\section{Details}{
+This section describes behavior of this function in detail.
+\subsection{Consensus algorithm}{
+
 The following steps are adopted to compute a single \code{GRanges} object from
 a list of input \code{GRanges}. Inter-range methods of the \code{GenomicRanges} package
 are used for computation.
@@ -26,18 +31,24 @@ are used for computation.
 \item Only retain non-overlapping ranges that overlaps with at least two ranges
 from the original concatenated GRanges.
 \item Merge connecting (i.e., distance is zero bp) ranges by \code{reduce}.
-\item Start again the concatenated GRanges as in step 1, get ranges that
-do not overlap with any other ranges by \code{countOverlaps}.
-\item Concatenate ranges from step 4 and 5 to yield the final 'consensus'.
+\item Extend ranges to at least \code{minimum.width}bp in length (or keep unchanged).
+\item Merge connecting ranges by \code{reduce}.
+\item Those ranges are considered to be 'consensus'.
+}
+}
+
+\subsection{Minimum width of the consensus ranges}{
+
+TODO
 }
 }
 
 \seealso{
 The following inter-range methods from the \code{GenomicRanges} package are used:
 \itemize{
-\item \link[GenomicRanges:inter-range-methods]{GenomicRanges::disjoin}
-\item \link[GenomicRanges:inter-range-methods]{GenomicRanges::reduce}
-\item \link[GenomicRanges:findOverlaps-methods]{GenomicRanges::countOverlaps}
+\item \code{\link[GenomicRanges:inter-range-methods]{GenomicRanges::disjoin()}}
+\item \code{\link[GenomicRanges:inter-range-methods]{GenomicRanges::reduce()}}
+\item \code{\link[GenomicRanges:findOverlaps-methods]{GenomicRanges::countOverlaps()}}
 }
 
 For \code{countOverlaps}, this functions always adopt parameter \code{type = "any"}.
