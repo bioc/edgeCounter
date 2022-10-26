@@ -11,11 +11,11 @@
 #' @returns A `GRanges` object representing edges of BAM reads.
 #'
 #' @details
-#' # Usage cases
+#' # Use cases
 #'
 #' * For ATAC sequencing, read edges are roughly transposition sites of the Tn5
-#' transposase. However, to get the exact base-pair-precision
-#' transposition sites you need to manually shift the read start/end positions.
+#' transposase. To get the exact base-pair-precision transposition sites
+#' you need to manually shift the read start/end positions.
 #'
 #' * Other cases?
 #' @export
@@ -44,29 +44,51 @@ bamEdges <- function(bam.path){
   )
 }
 
-#' Count number of BAM alignment read edges for each range of a `GRanges` object
+
+#' Count number of BAM alignment read edges for each range of a `GRanges/GRangesList` object
+#'
+#' @description `countEdgesCached()` counts number of BAM read pair edges for each
+#' range of a given `GRanges` object. Compared to the exported `countEdges()`,
+#' `countEdgesCached()` requires providing the pre-extracted edges using `bemEdges()`.
+#'
+#'
+#' @param ranges A GRanges/GRangesList object containing the ranges to consider
+#' @param edges A GRanges containing the edges. Use `bamEdges()` to get this.
+#' @returns The input GRanges/GRangesList object with an appended metadata column
+#' `edge.counts`.
+#'
+#' @seealso
+#' For more detailed discussion on "edges"
+#' of a BAM alignment file, see [bamEdges()].
+#' Consult [GenomicRanges::GRanges] about `GRanges` objects.
+countEdgesCached <- function(ranges, edges){
+
+  counts <- GenomicRanges::countOverlaps(ranges, edges, type = "any")
+  GenomicRanges::mcols(ranges)[["edge.counts"]] <- counts
+
+  ranges
+}
+
+
+#' Count number of BAM alignment read edges for each range of a `GRanges/GRangesList` object
 #'
 #' @description `countEdges()` counts number of BAM read pair edges for each
 #' range of a given `GRanges` object.
 #'
 #'
-#' @param ranges A GRanges object containing the ranges to consider
+#' @param ranges A GRanges/GRangesList object containing the ranges to consider
 #' @param bam.path Path to the BAM file.
-#' @returns The input GRanges object with an appended metadata column
+#' @returns The input GRanges/GRangesList object with an appended metadata column
 #' `edge.counts`
 #'
 #' @seealso
 #' For more detailed discussion on "edges"
 #' of a BAM alignment file, see [bamEdges()].
 #' Consult [GenomicRanges::GRanges] about `GRanges` objects.
+#' This function calls internal function [countEdgesCached()].
 #' @export
 countEdges <- function(ranges, bam.path){
-  # Given ranges as provided in `peaks` (GRanges object)
-  # Count how many 5' and 3' ends are within each of the peak
-  #   ... returns a numeric vector of length = length(peaks)
-  edges <- bamEdges(bam.path)
-  counts <- GenomicRanges::countOverlaps(ranges, edges, type = "any")
-  GenomicRanges::mcols(ranges)[["edge.counts"]] <- counts
 
-  ranges
+  edges <- bamEdges(bam.path)
+  countEdgesCached(ranges, edges)
 }

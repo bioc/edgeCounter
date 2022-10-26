@@ -17,11 +17,11 @@ A \code{GRanges} object representing edges of BAM reads.
 \code{bamEdges()} reads a BAM file and returns the 5' AND 3' ends of EACH
 paired-end read PAIR as a \code{GRanges} object.
 }
-\section{Usage cases}{
+\section{Use cases}{
 \itemize{
 \item For ATAC sequencing, read edges are roughly transposition sites of the Tn5
-transposase. However, to get the exact base-pair-precision
-transposition sites you need to manually shift the read start/end positions.
+transposase. To get the exact base-pair-precision transposition sites
+you need to manually shift the read start/end positions.
 \item Other cases?
 }
 }

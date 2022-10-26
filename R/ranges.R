@@ -1,4 +1,9 @@
-# Supporting functions for wrangling with GRanges
+# How to establish the intended GRanges object for counting?
+#   The following methods are suggested:
+#     1. Read MACS2 narrowPeaks or other BED-like files
+#     2. Genomic features from established packages, e.g., `GenomicFeatures::TxDb`.
+#   This package provides a set of helper functions to deal with #1.
+#   To further process #2 data, refer to `inter-range-methods` of `GenomicRanges`.
 
 #' Read in MACS2 narrowPeaks from one/multiple files into GRanges objects
 #'

@@ -60,6 +60,21 @@ makeGRanges <- function(df, seqnames.default = "chr2L"){
 }
 
 
+#' Break down a `GRanges` into a `GRangesList` of single ranges.
+#'
+#' @description `breakGRanges()` breaks down a `GRanges` object into a `GRangesList`
+#' where each list element is a single range (i.e., row) in the original `GRanges`.
+#'
+#' @param gr Input `GRanges`
+#' @returns A `GRangesList` object
+breakGRanges <- function(gr){
+  GenomicRanges::GRangesList(
+    lapply(1:length(gr), function(i) gr[i,]),
+    compress = TRUE
+  )
+}
+
+
 #' Reading BED and BED-like file with minimum dependency
 #'
 #' @description `importBED()` read in a BED file as a GRanges object.

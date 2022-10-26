@@ -18,7 +18,9 @@ Imports:
     GenomicRanges,
     IRanges,
     readr,
-    Rsamtools
+    Rsamtools,
+    S4Vectors,
+    SummarizedExperiment
 biocViews:
     Sequencing,
     DNASeq,
