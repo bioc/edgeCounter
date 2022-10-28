@@ -73,6 +73,7 @@ the subset of QC plots we preferred and do not show the output figures.
 ```{r setup}
 library(ATACseqQC)
 library(edgeCounter)
+library(SummarizedExperiment)
 
 sample.file <- system.file("extdata", "sample.near.Gapdh1.bam", 
                            package = "edgeCounter")
@@ -84,7 +85,7 @@ Initial quality controls such as fragment size distribution can be performed
 using the original BAM file. Quality controls relative to genome landmarks (e.g., 
 TSS) is performed after shifting the alignments.
 
-```{r ATACseqQC plots, echo=T, include=F}
+```{r ATACseqQC plots, echo=T, eval=F}
 # Fragment size distribution plot
 fragSizeDist(sample.file, "Sample")
 
@@ -121,10 +122,53 @@ into account. Check vignette of `ATACseqQC` for more details.
 To perform differential accessibility analysis, we need to first think about 
 which genomic ranges to look at. For instance:
 
-1. 
+1. Hypothesis-free: calling peaks with peak-callers such as `MACS3/MACS2` among 
+all samples. Then, form consensus peaks and look for differential accessibility 
+in the consensus peaks.
+
+2. Hypothesis-driven: you have a bunch of ranges in mind already, e.g., promoters 
+of all/selected genes, exon/intron regions of genes, etc.
+
+As our sample data contains transposition events near gene Gapdh1, here we 
+demonstrate counting within Gapdh1 promoter versus gene body. Towards this end, 
+`GenomicFeatures` offered by Bioconductor is used.
 
 # Counting transposition events
 
+```{r counting Gapdh1}
+# Transcript ID of Gapdh1-RB
+tx.id <- "FBtr0100479"
+names(txs) <- mcols(txs)$tx_name
+tx <- txs[tx.id]
+# Get ranges reflecting promoter vs gene body
+ranges <- c(
+  promoters(tx),
+  tx
+)
+mcols(ranges)$type <- c("promoter", "gene body")
+# Count edges
+counts <- edgeExperiment(c(Sample = sample.file), ranges)
+```
+
+```{r counting Gapdh1 assay}
+assay(counts)
+```
+
+```{r counting Gapdh1 rowRanges}
+rowRanges(counts)
+```
+
+Extra functions provided for counting edges:
+
+- `edgeExtract` combined with `edgeExperimentFromCounts` allows caching the edges 
+from BAM files and perform counting with different ranges. Reduces IO load if you 
+plan to test different sets of ranges.
+
+- `ecParallel` for parallel computation control. This package adopts PSOCK cluster 
+offered by the `parallel` package of R core.
+
 # Characteristics of the transposition count data
+
+
 
 # Differential analysis with `DESeq2`
