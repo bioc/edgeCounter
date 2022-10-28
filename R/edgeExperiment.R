@@ -54,8 +54,13 @@ edgeExtract <- function(bam.paths) {
 #' @seealso [SummarizedExperiment::RangedSummarizedExperiment]
 #' @export
 edgeExperiment <- function(bam.paths, ranges) {
+  # Sanity check
+  stopifnot(!is.null(names(bam.paths)))
+  stopifnot(inherits(ranges, "GRanges") | inherits(ranges, "GRangesList"))
   # Call edgeExtract to get a named list of counts first.
-  # TODO
+  edges <- edgeExtract(bam.paths)
+  # Call edgeExperimentFromCounts to get the final result
+  edgeExperimentFromCounts(edges, ranges)
 }
 
 

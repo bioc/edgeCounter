@@ -4,10 +4,13 @@
 \alias{ecParallelFunc}
 \title{Parallel execution of any function with arbitrary arguments.}
 \usage{
-ecParallelFunc(func, ...)
+ecParallelFunc(func, benchmark = F, ...)
 }
 \arguments{
 \item{func}{Function to run. This function must take arguments specified later.}
+
+\item{benchmark}{If set to TRUE, will message execution time. The time measured
+includes all overheads such as PSOCK cluster initialization.}
 
 \item{...}{Arbitrary arguments of the function. All arguments must be supplied
 as 'list-like' objects (see details).}

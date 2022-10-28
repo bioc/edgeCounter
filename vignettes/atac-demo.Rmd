@@ -1,0 +1,130 @@
+---
+title: "Analyzing ATAC-seq samples with edgeCounter"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Analyzing ATAC-seq samples with edgeCounter}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+Assay for Transposase-Accessible Chromatin using Sequencing (ATAC-seq) is an 
+alternative technique for assessing chromatin accessibility. In this method, 
+hyperactive Tn5 transposase inserts transposon into the genome and transposition 
+frequency depends mainly on 'genome accessibility'.
+
+After aligning the ATAC-seq reads to the genome, the following tasks need to be 
+performed for data interpretation:
+
+1. Quality control assessment, which may be performed by `ATACseqQC` package
+2. Counting transposition events given genomic ranges of interest
+3. Perform differential analysis to understand how certain treatment affects 
+genome accessibility as measurement by the transposition event counts.
+
+While `ATACseqQC` package handles the quality control step satisfactorily, 
+a well-documented and validated workflow is lacking for transposition event 
+counting and downstream differential analysis.
+
+`edgeCounter` fills this gap by providing functions for straightforward transposition 
+counts which may be used for downstream differential analysis by packages such as 
+`DESeq2`, `edgeR`, etc.
+
+# Goal of the vignette
+
+This vignette demonstrates a full workflow in which we:
+
+1. Perform a subset of QC tests provided by the `ATACseqQC` package
+2. Use `ATACseqQC` to shift the reads such that read edges (i.e., boundaries) 
+represent true transposition location
+3. Take the shifted reads and count transposition events given several example 
+genomic ranges
+
+For your own data, you need to first align and filter the ATAC-seq reads to get 
+BAM files of the alignment output. We assume that BAM files are already available 
+in this vignette.
+
+# Sample dataset intro
+
+The sample dataset is from a series of experiments in which ~1,000 neurons from 
+Drosophila melanogaster brains are used for ATAC-seq. Only alignments close to 
+the housekeeping Gapdh1 gene are included (`dm6 Chr2R:7791200-7793600`) totaling 
+1194 reads (597 pairs) in order to reduce package size.
+
+Given the small input, we expect less-than-ideal quality control metrics. 
+However, key metrics such as read enrichment from transcription start sites should 
+show expected results - see `ATACseqQC` package for more details.
+
+**Important note:** To get a full picture of quality controls of your sample, you 
+should use the full alignment file instead of a small subset. Therefore, in
+Section '`ATACseqQC`: Quality controls and read shifting' we only document 
+the subset of QC plots we preferred and do not show the output figures.
+
+
+# Environment setup
+
+```{r setup}
+library(ATACseqQC)
+library(edgeCounter)
+
+sample.file <- system.file("extdata", "sample.near.Gapdh1.bam", 
+                           package = "edgeCounter")
+```
+
+# `ATACseqQC`: Quality controls and read shifting
+
+Initial quality controls such as fragment size distribution can be performed 
+using the original BAM file. Quality controls relative to genome landmarks (e.g., 
+TSS) is performed after shifting the alignments.
+
+```{r ATACseqQC plots, echo=T, include=F}
+# Fragment size distribution plot
+fragSizeDist(sample.file, "Sample")
+
+# Shift the reads to reflect true transposition site
+#   might not be essential as shifting only introduces 4~5bp changes
+library(Rsamtools)
+#   read in BAM file with ATACseqQC wrapper
+#     bigFile=T necessary for large BAMs
+alignment <- readBamFile(sample.file, asMates=T, bigFile=F)
+#   path to save the shifted BAM - you should not use temporary file
+shifted.path <- tempfile("shifted", fileext = ".bam")
+#   shift BAM file and grab the shifted alignment object
+shifted <- shiftGAlignmentsList(alignment, outbam = shifted.path)
+
+# Get TSS-related quality controls
+#   load transcripts of your genome
+library(TxDb.Dmelanogaster.UCSC.dm6.ensGene)
+txs <- transcripts(TxDb.Dmelanogaster.UCSC.dm6.ensGene)
+#   TSS enrichment score
+tsse <- TSSEscore(shifted, txs)
+tsse$TSSEscore
+plot(100*(-9:10-.5), tsse$values, type="b", 
+     xlab="distance to TSS",
+     ylab="aggregate TSS score")
+```
+
+`ATACseqQC` also offers nucleosome positioning by splitting the reads into
+nucleosome-free, monucleosome, etc.  This might be done by simply considering 
+fragment sizes or using a random forest model taking conservation scores 
+into account. Check vignette of `ATACseqQC` for more details.
+
+# Counting transposition event: genomic ranges of interest
+
+To perform differential accessibility analysis, we need to first think about 
+which genomic ranges to look at. For instance:
+
+1. 
+
+# Counting transposition events
+
+# Characteristics of the transposition count data
+
+# Differential analysis with `DESeq2`

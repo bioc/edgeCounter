@@ -76,6 +76,8 @@ is.list.like <- function(obj){
 #' in a parallel manner specified by `ecOptions()`.
 #'
 #' @param func Function to run. This function must take arguments specified later.
+#' @param benchmark If set to TRUE, will message execution time. The time measured
+#' includes all overheads such as PSOCK cluster initialization.
 #' @param ... Arbitrary arguments of the function. All arguments must be supplied
 #' as 'list-like' objects (see details).
 #'
@@ -100,7 +102,10 @@ is.list.like <- function(obj){
 #' serial. If `parallel == TRUE`, `ecParallelFunc()` will initialize PSOCK cluster,
 #' execute computation, stop the PSOCK cluster, and then return the results.
 #' @export
-ecParallelFunc <- function(func, ...){
+ecParallelFunc <- function(func, benchmark = F, ...){
+
+  # If `benchmark` get time
+  if (benchmark) time <- Sys.time()
   # Get the arguments
   args <- list(...)
 
@@ -145,6 +150,11 @@ ecParallelFunc <- function(func, ...){
   if (par){
     parallel::stopCluster(cl)
   }
+
+  # If `benchmark` message elapsed time
+  if (benchmark) message("Elapsed time ",
+                         format(round(difftime(Sys.time(), time, units = "secs"),
+                                      digits = 1)))
 
   results
 }
