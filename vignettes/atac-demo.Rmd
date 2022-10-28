@@ -135,6 +135,14 @@ demonstrate counting within Gapdh1 promoter versus gene body. Towards this end,
 
 # Counting transposition events
 
+```{r loading the txdb which is not evaluated in ATACseqQC,echo=F}
+# Get TSS-related quality controls
+#   load transcripts of your genome
+library(TxDb.Dmelanogaster.UCSC.dm6.ensGene)
+txs <- transcripts(TxDb.Dmelanogaster.UCSC.dm6.ensGene)
+```
+
+
 ```{r counting Gapdh1}
 # Transcript ID of Gapdh1-RB
 tx.id <- "FBtr0100479"
