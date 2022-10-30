@@ -101,6 +101,7 @@ edgeExperimentFromCounts <- function(edges, ranges) {
   colnames(counts) <- sampleIDs
 
   # If `ranges` is a GRanges we will need to break it into a list
+  #   TODO: THIS ARRANGEMENT SEEMS TO SLOW DOWN CODE SIGNIFICANTLY THAN IT SHOULD BE.
   if (inherits(ranges, "GRanges")) ranges <- breakGRanges(ranges)
 
   # construct the RSE object
@@ -109,4 +110,35 @@ edgeExperimentFromCounts <- function(edges, ranges) {
     rowRanges = ranges,
     colData = S4Vectors::DataFrame(sampleID = sampleIDs)
   )
+}
+
+
+#' Plots variance ~ mean of range counts
+#'
+#' @description `varMeanPlot()` plots variance ~ mean of range counts given
+#' edge-counting result `SummarizedExperiment` object.
+#'
+#' @param edgeExp Edge-counting results as constructed by [edgeExperiment()].
+#' @param name Optional. Extra identifier of the dataset to be added on title.
+#' @returns None. Side effect of generating a single plot.
+#' @seealso [edgeExperiment()], [edgeExperimentFromCounts()].
+#' @export
+varMeanPlot <- function(edgeExp, name = NULL){
+  # Sanity check
+  stopifnot(inherits(edgeExp, "SummarizedExperiment"))
+  # Get counts data
+  counts <- SummarizedExperiment::assay(edgeExp, "counts")
+  # Retain ranges which have at least two NON-ZERO count values
+  zeros <- apply(counts == 0, 1, sum)
+  nonzeros <- ncol(counts) - zeros
+  retain <- nonzeros >= 2
+  message(sum(!retain), " ranges are removed.")
+  counts <- counts[retain,]
+  # Compute mean and variance
+  means <- apply(counts, 1, mean)
+  vars <- apply(counts, 1, stats::var)
+  # Plot the results
+  graphics::plot.default(x = means, y = vars, main = paste("var ~ mean", name),
+                         xlab = "Mean", ylab = "Variance", log = "xy")
+  graphics::abline(a = 0, b = 1, untf = T, col = "red", lty = 2)
 }

@@ -1,3 +1,4 @@
+
 ---
 title: "Analyzing ATAC-seq samples with edgeCounter"
 output: rmarkdown::html_vignette
@@ -177,6 +178,50 @@ offered by the `parallel` package of R core.
 
 # Characteristics of the transposition count data
 
+To perform differential analysis, we can adopt existing packages such as `DESeq2`, 
+`edgeR`, etc. We explain further with the `DESeq2` workflow. For details on the 
+`DESeq2` package please check out its well-written vignette.
 
+Our count data needs to satisfy statistical assumptions. Considering negative
+binomial, this asks for estimating dispersion parameters and therefore a positive 
+correlation between the mean and variance of a given range.
 
-# Differential analysis with `DESeq2`
+This is indeed typically the case - once the count matrix is computed with 
+`edgeExperiment` or related functions, variance ~ mean relationship can be plotted 
+using the helper function `varMeanPlot`. Here we show an example plot of a real 
+dataset consisting 6 replicates of an ATAC-seq experiment where the following 
+ranges are counted:
+
+1. Promoters of genes are computed (each row of the count matrix is an aggregate 
+count of ALL known promoters of a gene.)
+2. Gene bodies
+
+```{r Getting promoter aggregates of genes}
+# First, we get "promoter aggreates of genes"
+txs <- transcriptsBy(TxDb.Dmelanogaster.UCSC.dm6.ensGene, "gene")
+proms <- promoters(txs)  # A GRangesList object
+# Next, we get "gene bodies". Note that one gene "FBgn0002781" is removed.
+#   Look it up at NCBI/whatever you prefer!
+genes <- genes(TxDb.Dmelanogaster.UCSC.dm6.ensGene)  # A GRanges object
+```
+
+Due to package size consideration, data used to generate the plot is not 
+bundled with the package. For your application, make sure to run `edgeExtract` 
+to get your cached edges.
+
+```{r count mean variance relationship, echo=T, eval=F}
+expProms <- edgeExperimentFromCounts(edges, proms)
+expGenes <- edgeExperimentFromCounts(edges, genes)
+varMeanPlot(expProms, "promoter")
+varMeanPlot(expGenes, "gene body")
+```
+
+```{r replay saved plot varMean promoters, echo=F}
+replayPlot(readRDS(system.file("extdata", "varMeanPlot.promoter.rds",
+                               package = "edgeCounter")))
+```
+
+```{r replay saved plot varMean gene bodies, echo=F}
+replayPlot(readRDS(system.file("extdata", "varMeanPlot.gene.body.rds",
+                               package = "edgeCounter")))
+```
