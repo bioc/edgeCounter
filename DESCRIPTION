@@ -1,14 +1,20 @@
 Package: edgeCounter
 Title: Counting edges of BAM alignment against a GRanges object
-Version: 0.0.1
+Version: 0.99.1
 Authors@R: 
     person("Ye", "Yuan", , "yeyu@umich.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9641-9102"))
-Description: Given a BAM alignment file, each read pair will have two edges/ends.
-    This package counts number of read pair edges that overlaps within
-    each range of the 'GRanges'.
-    This package contains a complete example for ATAC sequencing quantification.
-License: GPL (>= 3)
+Description: Given a BAM alignment file, each read pair will have two edges.
+    edgeCounter counts the number of read pair edges that overlaps within
+    a set of genomic ranges. To assist with constructing/importing genomic 
+    ranges, edgeCounter provides minimal dependency, easy-to-use functions for
+    importing genomic ranges from existing BED or BED-like files (e.g., MACS2 
+    narrowPeak) and constructing genomic ranges by manually inputting specific 
+    ranges. While a complete vignette showing ATAC sequencing quantification is 
+    included, edgeCounter is expected to be directly applicable to other 
+    sequencing applications where alignment edges/ends, rather than full-length 
+    alignments themselves, are of interest.
+License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
@@ -28,6 +34,7 @@ biocViews:
     GeneRegulation,
     QualityControl,
     Coverage,
+    Alignment,
     NucleosomePositioning
 Suggests: 
     ATACseqQC,

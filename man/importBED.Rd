@@ -22,13 +22,14 @@ A GRanges object
 \subsection{BED file format}{
 
 The standard BED format supported by this function is three-column. Refer to
-\href{https://genome.ucsc.edu/FAQ/FAQformat.html}{UCSC FAQ} for more details.
+\href{https://genome.ucsc.edu/FAQ/FAQformat.html}{UCSC FAQ} for details.
 }
 
 \subsection{Extra columns}{
 
-Apart from the standard BED format, you can supply arbitrary extra columns by
-providing names and types of the columns in the \code{extra.cols} optional argument.
+Apart from the standard BED format, you can supply arbitrary extra columns
+by providing names and types of the columns in the \code{extra.cols}
+optional argument.
 
 The extra column names must be a character vector.
 
@@ -37,9 +38,16 @@ Types must follow the shorthand types used by \code{\link[readr:read_delim]{read
 
 \subsection{Strand column}{
 
-According to UCSC documentation, \code{strand} is an optional column at position 6.
-Therefore, 6th column of the file, if existent, must specify strand info.
-Supported strand spec characters are \code{.} (i.e., no strand), \code{+} and \code{-}.
+According to UCSC documentation, \code{strand} is an optional column
+at position 6. Therefore, 6th column of the file, if existent,
+must specify strand info. Supported strand spec characters are
+\code{.} (i.e., no strand), \code{+} and \code{-}.
 }
 }
 
+\examples{
+bed.path <- system.file("extdata", "importBED.example.bed",
+    package = "edgeCounter"
+)
+importBED(bed.path)
+}

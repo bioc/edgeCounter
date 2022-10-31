@@ -13,7 +13,8 @@
 #' Optionally provide strand (otherwise no strand information, i.e., '*')
 #'
 #' @param seqnames.default What value should seqnames take
-#' if `is.null(df$seqnames)`. This is restricted to length = 1 character vector.
+#' if `is.null(df$seqnames)`.
+#' This is restricted to length = 1 character vector.
 #'
 #' @examples
 #' makeGRanges(
@@ -36,42 +37,44 @@
 #'
 #' @returns A GRanges object
 #' @export
-makeGRanges <- function(df, seqnames.default = "chr2L"){
-  stopifnot(is.data.frame(df))  # tibble is also a data.frame
-  stopifnot(
-    !is.null(df$start),
-    !is.null(df$end)
-  )
-  suppressWarnings(
-    result <-
-      GenomicRanges::GRanges(
-        seqnames = ifelse(rep(is.null(df$seqnames), times = nrow(df)),
-                          rep(seqnames.default, times = nrow(df)),
-                          df$seqnames),
-        ranges = IRanges::IRanges(
-          start = df$start,
-          end = df$end
-        ),
-        strand = df$strand
-      )
-  )
+makeGRanges <- function(df, seqnames.default = "chr2L") {
+    stopifnot(is.data.frame(df)) # tibble is also a data.frame
+    stopifnot(
+        !is.null(df$start),
+        !is.null(df$end)
+    )
+    suppressWarnings(
+        result <-
+            GenomicRanges::GRanges(
+                seqnames = ifelse(rep(is.null(df$seqnames), times = nrow(df)),
+                    rep(seqnames.default, times = nrow(df)),
+                    df$seqnames
+                ),
+                ranges = IRanges::IRanges(
+                    start = df$start,
+                    end = df$end
+                ),
+                strand = df$strand
+            )
+    )
 
-  result
+    result
 }
 
 
 #' Break down a `GRanges` into a `GRangesList` of single ranges.
 #'
-#' @description `breakGRanges()` breaks down a `GRanges` object into a `GRangesList`
-#' where each list element is a single range (i.e., row) in the original `GRanges`.
+#' @description `breakGRanges()` breaks a `GRanges` object into a `GRangesList`
+#' where each list element is a single range (i.e., row)
+#' in the original `GRanges`.
 #'
 #' @param gr Input `GRanges`
 #' @returns A `GRangesList` object
-breakGRanges <- function(gr){
-  GenomicRanges::GRangesList(
-    lapply(1:length(gr), function(i) gr[i,]),
-    compress = TRUE
-  )
+breakGRanges <- function(gr) {
+    GenomicRanges::GRangesList(
+        lapply(1:length(gr), function(i) gr[i, ]),
+        compress = TRUE
+    )
 }
 
 
@@ -89,12 +92,13 @@ breakGRanges <- function(gr){
 #' ## BED file format
 #'
 #' The standard BED format supported by this function is three-column. Refer to
-#' \href{https://genome.ucsc.edu/FAQ/FAQformat.html}{UCSC FAQ} for more details.
+#' \href{https://genome.ucsc.edu/FAQ/FAQformat.html}{UCSC FAQ} for details.
 #'
 #' ## Extra columns
 #'
-#' Apart from the standard BED format, you can supply arbitrary extra columns by
-#' providing names and types of the columns in the `extra.cols` optional argument.
+#' Apart from the standard BED format, you can supply arbitrary extra columns
+#' by providing names and types of the columns in the `extra.cols`
+#' optional argument.
 #'
 #' The extra column names must be a character vector.
 #'
@@ -102,59 +106,71 @@ breakGRanges <- function(gr){
 #'
 #' ## Strand column
 #'
-#' According to UCSC documentation, `strand` is an optional column at position 6.
-#' Therefore, 6th column of the file, if existent, must specify strand info.
-#' Supported strand spec characters are `.` (i.e., no strand), `+` and `-`.
+#' According to UCSC documentation, `strand` is an optional column
+#' at position 6. Therefore, 6th column of the file, if existent,
+#' must specify strand info. Supported strand spec characters are
+#' `.` (i.e., no strand), `+` and `-`.
 #'
 #' @returns A GRanges object
+#' @examples
+#' bed.path <- system.file("extdata", "importBED.example.bed",
+#'     package = "edgeCounter"
+#' )
+#' importBED(bed.path)
 #' @export
-importBED <- function(path, extra.cols = NULL){
-  # Sanity checks of the extra column specs if provided
-  if (!is.null(extra.cols)){
-    stopifnot(
-      is.character(extra.cols$names),
-      is.character(extra.cols$types)
+importBED <- function(path, extra.cols = NULL) {
+    # Sanity checks of the extra column specs if provided
+    if (!is.null(extra.cols)) {
+        stopifnot(
+            is.character(extra.cols$names),
+            is.character(extra.cols$types)
+        )
+    }
+
+    # Get the full column specs
+    names <- c(
+        c("seqnames", "start", "end"), # BED default
+        extra.cols$names
     )
-  }
-
-  # Get the full column specs
-  names <- c(c("seqnames", "start", "end"),  # BED default
-             extra.cols$names)
-  types <- paste0("cii",  # BED default
-                  extra.cols$types)
-
-  # Read in the BED file
-  df <- readr::read_delim(file = path, delim = "\t",
-                          col_names = names, col_types = types)
-
-  # Add strand information if provided
-  if (ncol(df) >= 6){
-    # Extract strand
-    strands <- df[[6]]
-    # Sanity check
-    stopifnot(
-      is.character(strands),
-      all(strands %in% c(".", "+", "-"))
+    types <- paste0(
+        "cii", # BED default
+        extra.cols$types
     )
-    # Change `.` (UCSC) to `*` (GenomicRanges)
-    strands[strands == "."] <- "*"
-    # Write strand information and make sure it is named `strand`.
-    #   This `strand` name is used by `makeGRanges` function.
-    df[[6]] <- strands
-    names(df)[6] <- "strand"
-  }
 
-  # Convert into GRanges
-  gr <- makeGRanges(df)
+    # Read in the BED file
+    df <- readr::read_delim(
+        file = path, delim = "\t",
+        col_names = names, col_types = types
+    )
 
-  # Adding the metadata columns
-  df$start <- NULL
-  df$end <- NULL
-  df$seqnames <- NULL
-  suppressWarnings({
-    df$strand <- NULL  # tibble will warn if `strand` column is not existent.
-  })
-  GenomicRanges::mcols(gr) <- df
+    # Add strand information if provided
+    if (ncol(df) >= 6) {
+        # Extract strand
+        strands <- df[[6]]
+        # Sanity check
+        stopifnot(
+            is.character(strands),
+            all(strands %in% c(".", "+", "-"))
+        )
+        # Change `.` (UCSC) to `*` (GenomicRanges)
+        strands[strands == "."] <- "*"
+        # Write strand information and make sure it is named `strand`.
+        #   This `strand` name is used by `makeGRanges` function.
+        df[[6]] <- strands
+        names(df)[6] <- "strand"
+    }
 
-  gr
+    # Convert into GRanges
+    gr <- makeGRanges(df)
+
+    # Adding the metadata columns
+    df$start <- NULL
+    df$end <- NULL
+    df$seqnames <- NULL
+    suppressWarnings({
+        df$strand <- NULL # tibble warns if `strand` column is not existent.
+    })
+    GenomicRanges::mcols(gr) <- df
+
+    gr
 }

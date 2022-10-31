@@ -18,6 +18,9 @@ None. Side effect of generating a single plot.
 \code{varMeanPlot()} plots variance ~ mean of range counts given
 edge-counting result \code{SummarizedExperiment} object.
 }
+\examples{
+character(0) # Function is only meaningful with real data; see vignette
+}
 \seealso{
 \code{\link[=edgeExperiment]{edgeExperiment()}}, \code{\link[=edgeExperimentFromCounts]{edgeExperimentFromCounts()}}.
 }

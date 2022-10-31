@@ -2,7 +2,7 @@
 % Please edit documentation in R/countEdges.R
 \name{countEdges}
 \alias{countEdges}
-\title{Count number of BAM alignment read edges for each range of a \code{GRanges/GRangesList} object}
+\title{Count number of BAM read edges for each range of a \code{GRanges/GRangesList}.}
 \usage{
 countEdges(ranges, bam.path)
 }
@@ -12,12 +12,26 @@ countEdges(ranges, bam.path)
 \item{bam.path}{Path to the BAM file.}
 }
 \value{
-The input GRanges/GRangesList object with an appended metadata column
-\code{edge.counts}
+The input GRanges/GRangesList object with
+an appended metadata column \code{edge.counts}
 }
 \description{
 \code{countEdges()} counts number of BAM read pair edges for each
 range of a given \code{GRanges} object.
+}
+\examples{
+bam.path <- system.file("extdata", "sample.near.Gapdh1.bam",
+    package = "edgeCounter"
+)
+ranges <- makeGRanges(
+    tibble::tribble(
+        ~start, ~end, ~seqnames,
+        7791000, 7794000, "chr2R", # inclusive of Gapdh1 locus
+        80, 120, "chr2L", # random range
+        100, 300, "chrX" # random range
+    )
+)
+ranges <- countEdges(ranges, bam.path) # Adds a metadata column of counts
 }
 \seealso{
 For more detailed discussion on "edges"

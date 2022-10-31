@@ -2,80 +2,104 @@
 
 # Given that you have the following:
 #   1. A bunch of BAM files in which you want to count edges of the reads
-#   2. A GRanges or GRangesList object containing the ranges that you want to count
+#   2. A GRanges or GRangesList object with the ranges that you want to count
 # How to get an object of edge-counting results?
 
 
 #' Extract edges from BAM files
 #'
-#' @description `edgeExtract()` is a simple wrapper of `bamEdges` to extract edges
-#' of the BAM reads from multiple BAM files each of which represents one sample.
-#' This step is IO and memory intensive. Do NOT support parallel computing.
+#' @description `edgeExtract()` is a simple wrapper of `bamEdges`
+#' to extract edges of the BAM reads from multiple BAM files each of which
+#' represents one sample. This step is IO and memory intensive.
+#' Do NOT support parallel computing.
 #'
-#' @param bam.paths  A named character vector containing paths to the BAM files.
+#' @param bam.paths  A named character vector with paths to the BAM files.
 #' Names are used as sample IDs.
-#' @returns A compressed GRangesList containing edges from each of the BAM files.
+#' @returns A compressed GRangesList with edges from each of the BAM files.
 #' IDs will be saved in `names()`.
-#'
+#' @examples
+#' bam.paths <- system.file("extdata", "sample.near.Gapdh1.bam",
+#'     package = "edgeCounter"
+#' )
+#' names(bam.paths) <- "sample"
+#' edges <- edgeExtract(bam.paths) # Reads edges of one sample named "sample"
 #' @export
 edgeExtract <- function(bam.paths) {
-  # Sanity check, especially given that this is an expensive operation
-  #   require existence of sample IDs as names
-  stopifnot(!is.null(names(bam.paths)))
-  #   check file existence
-  stopifnot(all(file.exists(bam.paths)))
+    # Sanity check, especially given that this is an expensive operation
+    #   require existence of sample IDs as names
+    stopifnot(!is.null(names(bam.paths)))
+    #   check file existence
+    stopifnot(all(file.exists(bam.paths)))
 
-  # Construct the GRangesList
-  grl <- GenomicRanges::GRangesList(
-    lapply(bam.paths, bamEdges), compress = TRUE
-  )
-  # Add names to the list
-  names(grl) <- names(bam.paths)
+    # Construct the GRangesList
+    grl <- GenomicRanges::GRangesList(
+        lapply(bam.paths, bamEdges),
+        compress = TRUE
+    )
+    # Add names to the list
+    names(grl) <- names(bam.paths)
 
-  grl
+    grl
 }
 
 
 #' Construct a RangedSummarizedExperiment with BAM paths and ranges of interest
 #'
-#' @description `edgeExperiment()` constructs a RangedSummarizedExperiment object containing
-#' the edge-counting results given BAM file paths and a GRanges/GRangesList with
-#' the target ranges for counting. You need to specify IDs of the samples.
+#' @description `edgeExperiment()` constructs a RangedSummarizedExperiment
+#' object containing the edge-counting results given BAM file paths and
+#' a GRanges/GRangesList with the target ranges for counting.
+#' You need to specify IDs of the samples.
 #'
 #' @param bam.paths A named character vector containing paths to the BAM files.
 #' Names are used as sample IDs.
-#' @param ranges A GRanges or GRangesList object containing the ranges for counting.
+#' @param ranges A GRanges or GRangesList with the ranges for counting.
 #' If GRanges is provided, each single range row is calculated individually.
-#' If GRangesList is provided, each GRanges in the list is calculated individually
-#' instead.
-#' @returns A RangedSummarizedExperiment object containing the counting results.
+#' If GRangesList is provided, each GRanges in the list
+#' is calculated individually instead.
+#' @returns A RangedSummarizedExperiment containing the counting results.
 #' One `assay` is saved, `counts`, containing the counting results.
 #' `colData` will contain the sample IDs as row names but no column.
 #' @seealso [SummarizedExperiment::RangedSummarizedExperiment]
+#'
+#' @examples
+#' bam.paths <- system.file("extdata", "sample.near.Gapdh1.bam",
+#'     package = "edgeCounter"
+#' )
+#' names(bam.paths) <- "sample"
+#' ranges <- makeGRanges(
+#'     tibble::tribble(
+#'         ~start, ~end, ~seqnames,
+#'         7791000, 7794000, "chr2R", # inclusive of Gapdh1 locus
+#'         80, 120, "chr2L", # random range
+#'         100, 300, "chrX" # random range
+#'     )
+#' )
+#' exp <- edgeExperiment(bam.paths, ranges) # SummarizedExperiment with counts
 #' @export
 edgeExperiment <- function(bam.paths, ranges) {
-  # Sanity check
-  stopifnot(!is.null(names(bam.paths)))
-  stopifnot(inherits(ranges, "GRanges") | inherits(ranges, "GRangesList"))
-  # Call edgeExtract to get a named list of counts first.
-  edges <- edgeExtract(bam.paths)
-  # Call edgeExperimentFromCounts to get the final result
-  edgeExperimentFromCounts(edges, ranges)
+    # Sanity check
+    stopifnot(!is.null(names(bam.paths)))
+    stopifnot(inherits(ranges, "GRanges") | inherits(ranges, "GRangesList"))
+    # Call edgeExtract to get a named list of counts first.
+    edges <- edgeExtract(bam.paths)
+    # Call edgeExperimentFromCounts to get the final result
+    edgeExperimentFromCounts(edges, ranges)
 }
 
 
 #' Construct a RangedSummarizedExperiment with edge-counting results.
 #'
-#' @description `edgeExperimentFromCounts()` constructs a RangedSummarizedExperiment
-#' object containing the edge-counting results, given pre-extracted edges of
-#' the samples and a GRanges/GRangesList with the target ranges for counting.
+#' @description `edgeExperimentFromCounts()` constructs a
+#' RangedSummarizedExperiment object containing the edge-counting results,
+#' given pre-extracted edges of the samples
+#' and a GRanges/GRangesList with the target ranges for counting.
 #'
 #' @param edges Pre-extracted edges using [edgeExtract()].
-#' @param ranges A GRanges or GRangesList object containing the ranges for counting.
+#' @param ranges A GRanges or GRangesList containing the ranges for counting.
 #' If GRanges is provided, each single range row is calculated individually.
-#' If GRangesList is provided, each GRanges in the list is calculated individually
-#' instead.
-#' @returns A RangedSummarizedExperiment object containing the counting results.
+#' If GRangesList is provided, each GRanges in the list
+#' is calculated individually instead.
+#' @returns A RangedSummarizedExperiment containing the counting results.
 #' One `assay` is saved, `counts`, containing the counting results.
 #' `colData` will contain the sample IDs as row names but no column.
 #' @seealso [SummarizedExperiment::RangedSummarizedExperiment],
@@ -83,33 +107,54 @@ edgeExperiment <- function(bam.paths, ranges) {
 #' @details
 #' # Details
 #'
-#' To extract edges of the samples use the `edgeExtract` function. This function
-#' supports parallel computing as set up by [ecParallel()].
+#' To extract edges of the samples use the `edgeExtract` function.
+#' This function supports parallel computing as set up by [ecParallel()].
+#'
+#' @examples
+#' bam.paths <- system.file("extdata", "sample.near.Gapdh1.bam",
+#'     package = "edgeCounter"
+#' )
+#' names(bam.paths) <- "sample"
+#' ranges <- makeGRanges(
+#'     tibble::tribble(
+#'         ~start, ~end, ~seqnames,
+#'         7791000, 7794000, "chr2R", # inclusive of Gapdh1 locus
+#'         80, 120, "chr2L", # random range
+#'         100, 300, "chrX" # random range
+#'     )
+#' )
+#' edges <- edgeExtract(bam.paths) # Reads edges of one sample named "sample"
+#' exp <- edgeExperimentFromCounts(edges, ranges) # You can use other ranges
 #' @export
 edgeExperimentFromCounts <- function(edges, ranges) {
-  # Only need to run `countEdgesCached` and not `bamEdges`.
+    # Only need to run `countEdgesCached` and not `bamEdges`.
 
-  # Sanity check of edges - must be edgeExtract results or the same class
-  stopifnot(inherits(edges, "CompressedGRangesList"))
+    # Sanity check of edges - must be edgeExtract results or the same class
+    stopifnot(inherits(edges, "CompressedGRangesList"))
 
-  # count edges for each sample
-  sampleIDs <- names(edges)
-  counts <- ecParallelFunc(countEdgesCached,
-                           ranges = list(ranges), edges = as.list(edges))
-  counts <- lapply(counts, function(gr) GenomicRanges::mcols(gr)[["edge.counts"]])
-  counts <- matrix(unlist(counts), ncol = length(counts))
-  colnames(counts) <- sampleIDs
+    # count edges for each sample
+    sampleIDs <- names(edges)
+    counts <- ecParallelFunc(countEdgesCached,
+        ranges = list(ranges), edges = as.list(edges)
+    )
+    counts <- lapply(
+        counts,
+        function(gr) GenomicRanges::mcols(gr)[["edge.counts"]]
+    )
+    counts <- matrix(unlist(counts), ncol = length(counts))
+    colnames(counts) <- sampleIDs
 
-  # If `ranges` is a GRanges we will need to break it into a list
-  #   TODO: THIS ARRANGEMENT SEEMS TO SLOW DOWN CODE SIGNIFICANTLY THAN IT SHOULD BE.
-  if (inherits(ranges, "GRanges")) ranges <- breakGRanges(ranges)
+    # If `ranges` is a GRanges we will need to break it into a list
+    #   TODO: THIS ARRANGEMENT SEEMS TO SLOW DOWN CODE
+    #         SIGNIFICANTLY MORE THAN IT SHOULD BE.
+    if (inherits(ranges, "GRanges")) ranges <- breakGRanges(ranges)
 
-  # construct the RSE object
-  SummarizedExperiment::SummarizedExperiment(
-    assays = list(counts = counts),
-    rowRanges = ranges,
-    colData = S4Vectors::DataFrame(sampleID = sampleIDs)
-  )
+    # construct the RSE object
+    SummarizedExperiment::SummarizedExperiment(
+        assays = list(counts = counts),
+        rowRanges = ranges,
+        colData = S4Vectors::DataFrame(sampleID = sampleIDs)
+    )
 }
 
 
@@ -122,23 +167,27 @@ edgeExperimentFromCounts <- function(edges, ranges) {
 #' @param name Optional. Extra identifier of the dataset to be added on title.
 #' @returns None. Side effect of generating a single plot.
 #' @seealso [edgeExperiment()], [edgeExperimentFromCounts()].
+#' @examples
+#' character(0) # Function is only meaningful with real data; see vignette
 #' @export
-varMeanPlot <- function(edgeExp, name = NULL){
-  # Sanity check
-  stopifnot(inherits(edgeExp, "SummarizedExperiment"))
-  # Get counts data
-  counts <- SummarizedExperiment::assay(edgeExp, "counts")
-  # Retain ranges which have at least two NON-ZERO count values
-  zeros <- apply(counts == 0, 1, sum)
-  nonzeros <- ncol(counts) - zeros
-  retain <- nonzeros >= 2
-  message(sum(!retain), " ranges are removed.")
-  counts <- counts[retain,]
-  # Compute mean and variance
-  means <- apply(counts, 1, mean)
-  vars <- apply(counts, 1, stats::var)
-  # Plot the results
-  graphics::plot.default(x = means, y = vars, main = paste("var ~ mean", name),
-                         xlab = "Mean", ylab = "Variance", log = "xy")
-  graphics::abline(a = 0, b = 1, untf = T, col = "red", lty = 2)
+varMeanPlot <- function(edgeExp, name = NULL) {
+    # Sanity check
+    stopifnot(inherits(edgeExp, "SummarizedExperiment"))
+    # Get counts data
+    counts <- SummarizedExperiment::assay(edgeExp, "counts")
+    # Retain ranges which have at least two NON-ZERO count values
+    zeros <- apply(counts == 0, 1, sum)
+    nonzeros <- ncol(counts) - zeros
+    retain <- nonzeros >= 2
+    message(sum(!retain), " ranges are removed.")
+    counts <- counts[retain, ]
+    # Compute mean and variance
+    means <- apply(counts, 1, mean)
+    vars <- apply(counts, 1, stats::var)
+    # Plot the results
+    graphics::plot.default(
+        x = means, y = vars, main = paste("var ~ mean", name),
+        xlab = "Mean", ylab = "Variance", log = "xy"
+    )
+    graphics::abline(a = 0, b = 1, untf = TRUE, col = "red", lty = 2)
 }

@@ -8,8 +8,8 @@ ecOptions.valid()
 }
 \value{
 A named list where names are names of available global options and
-values are functions for validating the option. Validation functions must take
-in a single argument and return Boolean.
+values are functions for validating the option.
+Validation functions must take in a single argument and return Boolean.
 }
 \description{
 \code{ecOptions.valid()} is internally used for global option

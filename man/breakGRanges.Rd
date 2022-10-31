@@ -13,6 +13,7 @@ breakGRanges(gr)
 A \code{GRangesList} object
 }
 \description{
-\code{breakGRanges()} breaks down a \code{GRanges} object into a \code{GRangesList}
-where each list element is a single range (i.e., row) in the original \code{GRanges}.
+\code{breakGRanges()} breaks a \code{GRanges} object into a \code{GRangesList}
+where each list element is a single range (i.e., row)
+in the original \code{GRanges}.
 }

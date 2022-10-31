@@ -7,15 +7,23 @@
 edgeExtract(bam.paths)
 }
 \arguments{
-\item{bam.paths}{A named character vector containing paths to the BAM files.
+\item{bam.paths}{A named character vector with paths to the BAM files.
 Names are used as sample IDs.}
 }
 \value{
-A compressed GRangesList containing edges from each of the BAM files.
+A compressed GRangesList with edges from each of the BAM files.
 IDs will be saved in \code{names()}.
 }
 \description{
-\code{edgeExtract()} is a simple wrapper of \code{bamEdges} to extract edges
-of the BAM reads from multiple BAM files each of which represents one sample.
-This step is IO and memory intensive. Do NOT support parallel computing.
+\code{edgeExtract()} is a simple wrapper of \code{bamEdges}
+to extract edges of the BAM reads from multiple BAM files each of which
+represents one sample. This step is IO and memory intensive.
+Do NOT support parallel computing.
+}
+\examples{
+bam.paths <- system.file("extdata", "sample.near.Gapdh1.bam",
+    package = "edgeCounter"
+)
+names(bam.paths) <- "sample"
+edges <- edgeExtract(bam.paths) # Reads edges of one sample named "sample"
 }

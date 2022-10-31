@@ -18,21 +18,22 @@ Boolean where TRUE means the object is 'list-like'.
 \details{
 A 'list-like' object is anything that has the following operators:
 \itemize{
-\item \verb{[[]]} double bracket subsetting, which should return an object in the list.
-Integer subsetting must be supported.
+\item \verb{[[]]} double bracket subsetting, which should
+return an object in the list. Integer subsetting must be supported.
 \item \code{length} which should return length of the list.
 }
 }
 \examples{
 gr <- makeGRanges(
-   tibble::tribble(
-   ~start, ~end, ~seqnames,
-   1, 100, "chr2L",
-   80, 120, "chr2L",
-   100, 300, "chrX"
-))
+    tibble::tribble(
+        ~start, ~end, ~seqnames,
+        1, 100, "chr2L",
+        80, 120, "chr2L",
+        100, 300, "chrX"
+    )
+)
 
-is.list.like(gr)  # FALSE
-is.list.like(GenomicRanges::GRangesList(list(gr, gr)))  # TRUE
+is.list.like(gr) # FALSE
+is.list.like(GenomicRanges::GRangesList(list(gr, gr))) # TRUE
 
 }

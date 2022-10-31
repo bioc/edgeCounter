@@ -2,7 +2,7 @@
 % Please edit documentation in R/countEdges.R
 \name{countEdgesCached}
 \alias{countEdgesCached}
-\title{Count number of BAM alignment read edges for each range of a \code{GRanges/GRangesList} object}
+\title{Count number of BAM read edges for each range of a \code{GRanges/GRangesList}.}
 \usage{
 countEdgesCached(ranges, edges)
 }
@@ -12,13 +12,14 @@ countEdgesCached(ranges, edges)
 \item{edges}{A GRanges containing the edges. Use \code{bamEdges()} to get this.}
 }
 \value{
-The input GRanges/GRangesList object with an appended metadata column
-\code{edge.counts}.
+The input GRanges/GRangesList object with
+an appended metadata column \code{edge.counts}.
 }
 \description{
-\code{countEdgesCached()} counts number of BAM read pair edges for each
-range of a given \code{GRanges} object. Compared to the exported \code{countEdges()},
-\code{countEdgesCached()} requires providing the pre-extracted edges using \code{bemEdges()}.
+\code{countEdgesCached()} counts number of BAM read pair edges for
+each range of a given \code{GRanges} object. Compared to
+the exported \code{countEdges()}, \code{countEdgesCached()} requires providing
+the pre-extracted edges using \code{bamEdges()}.
 }
 \seealso{
 For more detailed discussion on "edges"

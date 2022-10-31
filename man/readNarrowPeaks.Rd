@@ -13,9 +13,16 @@ readNarrowPeaks(paths, names = NULL)
 }
 \value{
 A named list of GRanges objects. Names are the input paths.
-If \code{names} is provided, \code{names} is used as list names instead of input paths.
+If \code{names} is provided, \code{names} is used
+as list names instead of input paths.
 }
 \description{
 \code{readNarrowPeaks()} reads in MACS2 narrowPeaks from files
 into a list of GRanges object(s).
+}
+\examples{
+np.path <- system.file("extdata", "readNarrowPeaks.example.narrowPeak",
+    package = "edgeCounter"
+)
+readNarrowPeaks(np.path, names = "sample") # Returns a list of GRanges
 }

@@ -26,3 +26,9 @@ you need to manually shift the read start/end positions.
 }
 }
 
+\examples{
+bam.path <- system.file("extdata", "sample.near.Gapdh1.bam",
+    package = "edgeCounter"
+)
+edges <- bamEdges(bam.path) # A GRanges containing read edges
+}

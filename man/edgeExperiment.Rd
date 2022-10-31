@@ -10,20 +10,36 @@ edgeExperiment(bam.paths, ranges)
 \item{bam.paths}{A named character vector containing paths to the BAM files.
 Names are used as sample IDs.}
 
-\item{ranges}{A GRanges or GRangesList object containing the ranges for counting.
+\item{ranges}{A GRanges or GRangesList with the ranges for counting.
 If GRanges is provided, each single range row is calculated individually.
-If GRangesList is provided, each GRanges in the list is calculated individually
-instead.}
+If GRangesList is provided, each GRanges in the list
+is calculated individually instead.}
 }
 \value{
-A RangedSummarizedExperiment object containing the counting results.
+A RangedSummarizedExperiment containing the counting results.
 One \code{assay} is saved, \code{counts}, containing the counting results.
 \code{colData} will contain the sample IDs as row names but no column.
 }
 \description{
-\code{edgeExperiment()} constructs a RangedSummarizedExperiment object containing
-the edge-counting results given BAM file paths and a GRanges/GRangesList with
-the target ranges for counting. You need to specify IDs of the samples.
+\code{edgeExperiment()} constructs a RangedSummarizedExperiment
+object containing the edge-counting results given BAM file paths and
+a GRanges/GRangesList with the target ranges for counting.
+You need to specify IDs of the samples.
+}
+\examples{
+bam.paths <- system.file("extdata", "sample.near.Gapdh1.bam",
+    package = "edgeCounter"
+)
+names(bam.paths) <- "sample"
+ranges <- makeGRanges(
+    tibble::tribble(
+        ~start, ~end, ~seqnames,
+        7791000, 7794000, "chr2R", # inclusive of Gapdh1 locus
+        80, 120, "chr2L", # random range
+        100, 300, "chrX" # random range
+    )
+)
+exp <- edgeExperiment(bam.paths, ranges) # SummarizedExperiment with counts
 }
 \seealso{
 \link[SummarizedExperiment:RangedSummarizedExperiment-class]{SummarizedExperiment::RangedSummarizedExperiment}

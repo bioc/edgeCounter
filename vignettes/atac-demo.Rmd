@@ -10,8 +10,8 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+    collapse = TRUE,
+    comment = "#>"
 )
 ```
 
@@ -76,8 +76,9 @@ library(ATACseqQC)
 library(edgeCounter)
 library(SummarizedExperiment)
 
-sample.file <- system.file("extdata", "sample.near.Gapdh1.bam", 
-                           package = "edgeCounter")
+sample.file <- system.file("extdata", "sample.near.Gapdh1.bam",
+    package = "edgeCounter"
+)
 ```
 
 # `ATACseqQC`: Quality controls and read shifting
@@ -95,7 +96,7 @@ fragSizeDist(sample.file, "Sample")
 library(Rsamtools)
 #   read in BAM file with ATACseqQC wrapper
 #     bigFile=T necessary for large BAMs
-alignment <- readBamFile(sample.file, asMates=T, bigFile=F)
+alignment <- readBamFile(sample.file, asMates = T, bigFile = F)
 #   path to save the shifted BAM - you should not use temporary file
 shifted.path <- tempfile("shifted", fileext = ".bam")
 #   shift BAM file and grab the shifted alignment object
@@ -108,9 +109,11 @@ txs <- transcripts(TxDb.Dmelanogaster.UCSC.dm6.ensGene)
 #   TSS enrichment score
 tsse <- TSSEscore(shifted, txs)
 tsse$TSSEscore
-plot(100*(-9:10-.5), tsse$values, type="b", 
-     xlab="distance to TSS",
-     ylab="aggregate TSS score")
+plot(100 * (-9:10 - .5), tsse$values,
+    type = "b",
+    xlab = "distance to TSS",
+    ylab = "aggregate TSS score"
+)
 ```
 
 `ATACseqQC` also offers nucleosome positioning by splitting the reads into
@@ -151,8 +154,8 @@ names(txs) <- mcols(txs)$tx_name
 tx <- txs[tx.id]
 # Get ranges reflecting promoter vs gene body
 ranges <- c(
-  promoters(tx),
-  tx
+    promoters(tx),
+    tx
 )
 mcols(ranges)$type <- c("promoter", "gene body")
 # Count edges
@@ -199,10 +202,10 @@ count of ALL known promoters of a gene.)
 ```{r Getting promoter aggregates of genes}
 # First, we get "promoter aggreates of genes"
 txs <- transcriptsBy(TxDb.Dmelanogaster.UCSC.dm6.ensGene, "gene")
-proms <- promoters(txs)  # A GRangesList object
+proms <- promoters(txs) # A GRangesList object
 # Next, we get "gene bodies". Note that one gene "FBgn0002781" is removed.
 #   Look it up at NCBI/whatever you prefer!
-genes <- genes(TxDb.Dmelanogaster.UCSC.dm6.ensGene)  # A GRanges object
+genes <- genes(TxDb.Dmelanogaster.UCSC.dm6.ensGene) # A GRanges object
 ```
 
 Due to package size consideration, data used to generate the plot is not 
@@ -218,10 +221,20 @@ varMeanPlot(expGenes, "gene body")
 
 ```{r replay saved plot varMean promoters, echo=F}
 replayPlot(readRDS(system.file("extdata", "varMeanPlot.promoter.rds",
-                               package = "edgeCounter")))
+    package = "edgeCounter"
+)))
 ```
 
 ```{r replay saved plot varMean gene bodies, echo=F}
 replayPlot(readRDS(system.file("extdata", "varMeanPlot.gene.body.rds",
-                               package = "edgeCounter")))
+    package = "edgeCounter"
+)))
 ```
+
+
+# SessionInfo
+
+```{r sessioninfo}
+sessionInfo()
+```
+

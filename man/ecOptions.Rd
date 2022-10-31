@@ -30,10 +30,14 @@ See \link[parallel:makeCluster]{parallel::makePSOCKcluster}. Not used if \code{p
 \subsection{Parallel computation}{
 
 This package always use PSOCK cluster as supported by the \code{parallel} package
-for parallel computation. A 'diligent' approach for initialization and clean-up
-of the PSOCK cluster is used, meaning that the PSOCK cluster is initialized
-only when functions supporting parallel computation is called, and the cluster
-is stopped whenever the called function exits.
+for parallel computation. A 'diligent' approach for initialization
+and clean-up of the PSOCK cluster is used, meaning that the PSOCK cluster is
+initialized only when functions supporting parallel computation is called,
+and the cluster is stopped whenever the called function exits.
 }
 }
 
+\examples{
+ecOptions() # Returns current option
+ecOptions(parallel = FALSE) # Turns off parallel computation
+}

@@ -7,12 +7,18 @@
 ecParallel(PSOCK.names)
 }
 \arguments{
-\item{PSOCK.names}{\code{name} of \link[parallel:makeCluster]{parallel::makePSOCKcluster}. If \code{NULL} is provided,
-parallel computing feature will be turned off.}
+\item{PSOCK.names}{\code{name} of \link[parallel:makeCluster]{parallel::makePSOCKcluster}.
+If \code{NULL} is provided, parallel computing feature will be turned off.}
 }
 \value{
 None.
 }
 \description{
 \code{ecParallel()} sets global parallel computing options.
+}
+\examples{
+ecParallel(6) # 6 workers, local machine
+getOption("ecOptions")
+ecParallel(NULL) # turn off PSOCK parallelization
+getOption("ecOptions")
 }

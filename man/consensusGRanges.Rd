@@ -7,9 +7,11 @@
 consensusGRanges(grs, minimum.width = 100)
 }
 \arguments{
-\item{grs}{A list of GRanges objects, could be length 1 or more.}
+\item{grs}{A single GRanges or a list of GRanges, could be length 1 or more.}
 
-\item{minimum.width}{Minimum width of the consensus ranges.}
+\item{minimum.width}{Minimum width of the consensus ranges. Could be either
+positive integer or NULL (which will trigger two computation modes, see
+detail).}
 }
 \value{
 A GRanges object consisting the consensus ranges.
@@ -19,30 +21,72 @@ A GRanges object consisting the consensus ranges.
 GRanges objects. Definition of 'consensus' is explained in Details section.
 }
 \section{Details}{
-This section describes behavior of this function in detail.
-\subsection{Consensus algorithm}{
+This section describes behavior of this function in detail. Two modes are
+supported by this function, which are defined by value of \code{minimum.width}.
+\subsection{Consensus algorithm (when \code{minimum.width} is NOT \code{NULL})}{
 
 The following steps are adopted to compute a single \code{GRanges} object from
-a list of input \code{GRanges}. Inter-range methods of the \code{GenomicRanges} package
-are used for computation.
+a list of input \code{GRanges}.
+Inter-range methods of the \code{GenomicRanges} package are used for computation.
 \enumerate{
-\item Concatenate all ranges from all GRanges in the list into a single GRanges.
+\item Concatenate all ranges from all GRanges in list into a single GRanges.
 \item Get a collection of non-overlapping ranges by \code{disjoin}.
 \item Only retain non-overlapping ranges that overlaps with at least two ranges
 from the original concatenated GRanges.
 \item Merge connecting (i.e., distance is zero bp) ranges by \code{reduce}.
-\item Extend ranges to at least \code{minimum.width}bp in length (or keep unchanged).
+\item Extend ranges to >= \code{minimum.width}bp in length (or keep unchanged).
 \item Merge connecting ranges by \code{reduce}.
 \item Those ranges are considered to be 'consensus'.
 }
-}
-
 \subsection{Minimum width of the consensus ranges}{
 
-TODO
+When \code{minimum.width} is a defined integer, the consensus ranges computed by
+the algorithm above is enforced to be at least of \code{minimum.width} in width.
+If ranges are not wide enough, they are extended to \code{minimum.width} width by
+\code{GenomicRanges::resize(..., fix = "center")}.
+}
+
+}
+
+\subsection{Consensus algorithm (when \code{minimum.width} is \code{NULL})}{
+
+When minimum.width is set to be \code{NULL}, the function tries to get "widest"
+and "most" possible consensus ranges. The following steps are adopted:
+\enumerate{
+\item Concatenate all ranges from all GRanges in list into a single GRanges.
+\item Get a collection of non-overlapping ranges by \code{disjoin}.
+\item Merge connecting (i.e., distance is zero bp) ranges by \code{reduce}.
+\item Those ranges are considered to be 'consensus'.
+}
+
+Therefore, under this mode even ranges that occur only once will be reported
+as a "consensus range".
 }
 }
 
+\examples{
+grs <- makeGRanges(
+    tibble::tribble(
+        ~start, ~end, ~seqnames,
+        100, 200, "chr2L",
+        150, 250, "chr2L",
+        200, 400, "chrX",
+        250, 500, "chrX"
+    )
+)
+consensusGRanges(grs) # With default, a minimum width is enforced
+
+grs <- makeGRanges(
+    tibble::tribble(
+        ~start, ~end, ~seqnames,
+        100, 240, "chr2L",
+        300, 510, "chr2L",
+        100, 200, "chrX"
+    )
+)
+consensusGRanges(grs, minimum.width = NULL)
+
+}
 \seealso{
 The following inter-range methods from the \code{GenomicRanges} package are used:
 \itemize{

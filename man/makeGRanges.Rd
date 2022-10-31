@@ -12,7 +12,8 @@ Optionally provide seqnames (otherwise will take default value)
 Optionally provide strand (otherwise no strand information, i.e., '*')}
 
 \item{seqnames.default}{What value should seqnames take
-if \code{is.null(df$seqnames)}. This is restricted to length = 1 character vector.}
+if \code{is.null(df$seqnames)}.
+This is restricted to length = 1 character vector.}
 }
 \value{
 A GRanges object

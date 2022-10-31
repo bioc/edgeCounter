@@ -4,16 +4,16 @@
 \alias{ecParallelFunc}
 \title{Parallel execution of any function with arbitrary arguments.}
 \usage{
-ecParallelFunc(func, benchmark = F, ...)
+ecParallelFunc(func, benchmark = FALSE, ...)
 }
 \arguments{
-\item{func}{Function to run. This function must take arguments specified later.}
+\item{func}{Function to run, which must take arguments specified later.}
 
-\item{benchmark}{If set to TRUE, will message execution time. The time measured
+\item{benchmark}{If TRUE will message execution time. The time measured
 includes all overheads such as PSOCK cluster initialization.}
 
-\item{...}{Arbitrary arguments of the function. All arguments must be supplied
-as 'list-like' objects (see details).}
+\item{...}{Arbitrary arguments of the function. All arguments must be
+list-like' objects (see details).}
 }
 \value{
 A list of the execution results.
@@ -23,7 +23,7 @@ A list of the execution results.
 in a parallel manner specified by \code{ecOptions()}.
 }
 \section{Arguments supplied}{
-\code{ecParallelFunc()} will take arbitrary arguments supplied as list-like objects
+\code{ecParallelFunc()} takes arbitrary arguments supplied as list-like objects
 and feed consecutive combinations of the arguments.
 \subsection{'list-like' objects}{
 
@@ -36,9 +36,14 @@ A list-like object must support the following operators.
 }
 
 \section{Behavior depending on \code{ecOptions}}{
-\code{\link[=ecOptions]{ecOptions()}} describes options of this package including parallel computation.
-If \code{parallel == FALSE}, \code{ecParallelFunc()} will be running the combinations in
-serial. If \code{parallel == TRUE}, \code{ecParallelFunc()} will initialize PSOCK cluster,
-execute computation, stop the PSOCK cluster, and then return the results.
+\code{\link[=ecOptions]{ecOptions()}} describes options of this package
+including parallel computation.
+If \code{parallel == FALSE}, \code{ecParallelFunc()} will be running
+the combinations in serial. If \code{parallel == TRUE},
+\code{ecParallelFunc()} will initialize PSOCK cluster, execute computation,
+stop the PSOCK cluster, and then return the results.
 }
 
+\examples{
+ecParallelFunc(function(x, y) x + y, x = c(1, 2, 3), y = list(5))
+}
