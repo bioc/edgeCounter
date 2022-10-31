@@ -72,7 +72,7 @@ makeGRanges <- function(df, seqnames.default = "chr2L") {
 #' @returns A `GRangesList` object
 breakGRanges <- function(gr) {
     GenomicRanges::GRangesList(
-        lapply(1:length(gr), function(i) gr[i, ]),
+        lapply(seq_along(gr), function(i) gr[i, ]),
         compress = TRUE
     )
 }

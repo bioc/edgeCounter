@@ -118,20 +118,14 @@ ecParallelFunc <- function(func, benchmark = FALSE, ...) {
     if (benchmark) time <- Sys.time()
     # Get the arguments
     args <- list(...)
-
     # Sanity checking
-    #   Must provide a function
-    stopifnot(is.function(func))
-    #   All argument values must be list-like objects
-    stopifnot(all(
-        vapply(args, is.list.like, TRUE)
-    ))
+    stopifnot(is.function(func)) #   Must provide a function
+    stopifnot(all(vapply(args, is.list.like, TRUE)))  #   list-like arguments
     #   Argument list lengths must be the same or 1
     arg.lens <- vapply(args, length, 1)
     arg.lens <- dimnames(table(arg.lens))[[1]]
     arg.lens <- arg.lens[arg.lens != "1"]
     stopifnot(length(arg.lens) %in% c(0, 1))
-
     # Decide on parallel computation
     par <- getOption("ecOptions")$parallel
     if (par) {
@@ -148,25 +142,18 @@ ecParallelFunc <- function(func, benchmark = FALSE, ...) {
         )
         # Load function for computation
         parallel::clusterExport(cl, "func", envir = environment())
-
         pMApply <- function(...) {
-            parallel::clusterMap(
-                cl = cl, fun = func,
-                .scheduling = "static", ...
-            )
-        }
+            parallel::clusterMap(cl = cl, fun = func,
+                                 .scheduling = "static", ...)}
     } else {
         pMApply <- function(...) mapply(FUN = func, SIMPLIFY = FALSE, ...)
     }
-
     # Apply function
     results <- pMApply(...)
-
     # Clean up
     if (par) {
         parallel::stopCluster(cl)
     }
-
     # If `benchmark` message elapsed time
     if (benchmark) {
         message(
