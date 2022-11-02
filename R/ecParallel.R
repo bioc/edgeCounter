@@ -120,7 +120,7 @@ ecParallelFunc <- function(func, benchmark = FALSE, ...) {
     args <- list(...)
     # Sanity checking
     stopifnot(is.function(func)) #   Must provide a function
-    stopifnot(all(vapply(args, is.list.like, TRUE)))  #   list-like arguments
+    stopifnot(all(vapply(args, is.list.like, TRUE))) #   list-like arguments
     #   Argument list lengths must be the same or 1
     arg.lens <- vapply(args, length, 1)
     arg.lens <- dimnames(table(arg.lens))[[1]]
@@ -143,8 +143,11 @@ ecParallelFunc <- function(func, benchmark = FALSE, ...) {
         # Load function for computation
         parallel::clusterExport(cl, "func", envir = environment())
         pMApply <- function(...) {
-            parallel::clusterMap(cl = cl, fun = func,
-                                 .scheduling = "static", ...)}
+            parallel::clusterMap(
+                cl = cl, fun = func,
+                .scheduling = "static", ...
+            )
+        }
     } else {
         pMApply <- function(...) mapply(FUN = func, SIMPLIFY = FALSE, ...)
     }

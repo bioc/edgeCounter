@@ -38,9 +38,11 @@ biocViews:
     NucleosomePositioning
 Suggests: 
     ATACseqQC,
+    GenomeInfoDb,
     GenomicFeatures,
     knitr,
     rmarkdown,
+    rtracklayer,
     testthat (>= 3.0.0),
     tibble,
     TxDb.Dmelanogaster.UCSC.dm6.ensGene

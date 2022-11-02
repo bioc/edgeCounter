@@ -36,7 +36,7 @@ test_that("edgeExperimentFromCounts() works with GRanges and GRangesList", {
         res1.expected
     )
     #   rowRanges should be expected
-    expect_identical(SummarizedExperiment::rowRanges(res1), breakGRanges(ranges))
+    expect_identical(SummarizedExperiment::rowRanges(res1), ranges)
 
 
     # Next, test with GRangesList

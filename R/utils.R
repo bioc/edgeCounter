@@ -72,10 +72,10 @@ makeGRanges <- function(df, seqnames.default = "chr2L") {
 #' @returns A `GRangesList` object
 breakGRanges <- function(gr) {
     res <-
-      GenomicRanges::GRangesList(
-        lapply(seq_along(gr), function(i) gr[i, ]),
-        compress = TRUE
-    )
+        GenomicRanges::GRangesList(
+            lapply(seq_along(gr), function(i) gr[i, ]),
+            compress = TRUE
+        )
     names(res) <- names(gr)
     res
 }
@@ -176,4 +176,109 @@ importBED <- function(path, extra.cols = NULL) {
     GenomicRanges::mcols(gr) <- df
 
     gr
+}
+
+
+#' Convert rowRanges to BED-format
+#'
+#' @description `rowRangesToBED()` takes in a `RangedSummarizedExperiment`
+#' and converts its `rowRanges()` GRangesList into BED-formatted list.
+#'
+#' @param edgeExp A `RangedSummarizedExperiment` object
+#'
+#' @returns A list of BED-formatted rowRanges. See details.
+#'
+#' @details
+#' # Details
+#'
+#' Returned list is essentially a data.frame with the following columns.
+#' `x=y` below means that `x` is the list element in the returned list,
+#' and `y` is the `GRanges` equivalent.
+#'
+#' ```
+#' chrom = seqnames; Each GRanges MUST contain only one unique seqnames.
+#' chromStart = min(start())
+#' chromEnd = max(end())
+#' name = name of the GRanges defined in rowRanges list
+#' strand = Always set to '.'
+#' thickStart = min(start())
+#' thickEnd = max(end())
+#' itemRgb = Always set to '255,0,0'
+#' blockCount = length()
+#' blockSizes = width()  # comma-separated list
+#' blockStarts = start() - min(start())  # comma-separated list
+#' ```
+#'
+#' ## Performance note
+#'
+#' Current implementation is relatively slow due to the `vapply`s
+#' involving `IRanges::RleList`.
+rowRangesToBED <- function(edgeExp) {
+    # Sanity check
+    stopifnot(inherits(edgeExp, "RangedSummarizedExperiment"))
+    seqnames <- SummarizedExperiment::seqnames(edgeExp)
+    seqnames.rn <- vapply(seqnames, S4Vectors::nrun, 0)
+    #   All ranges must have only ONE run for seqnames
+    stopifnot(all(seqnames.rn == 1))
+    # Get rowRanges
+    rr <- SummarizedExperiment::rowRanges(edgeExp)
+    # Parse names
+    rr.name <- names(rr)
+    if (is.null(rr.name)) rr.name <- rep(NA_character_, times = length(rr))
+    # Parse starts and ends
+    starts <- min(GenomicRanges::start(rr))
+    ends <- max(GenomicRanges::end(rr))
+    # Parse blockSizes
+    blocksizes <- vapply(rr, function(gr) {
+        paste(GenomicRanges::width(gr), collapse = ",")
+    }, "")
+    # Parse blockStarts
+    blockstarts <- vapply(rr, function(gr) {
+        abs.start <- min(GenomicRanges::start(gr))
+        rel.starts <- GenomicRanges::start(gr) - abs.start
+        paste(rel.starts, collapse = ",")
+    }, "")
+    list(
+        chrom = vapply(seqnames, function(sn) as.character(sn)[1], ""),
+        chromStart = starts,
+        chromEnd = ends,
+        name = rr.name,
+        strand = rep(".", times = length(rr)),
+        thickStart = starts,
+        thickEnd = ends,
+        itemRgb = rep("255,0,0", times = length(rr)),
+        blockCount = vapply(rr, length, 0),
+        blockSizes = blocksizes,
+        blockStarts = blockstarts
+    )
+}
+
+
+#' Construct UCSC-format BED track line with score display
+#'
+#' @description `getBEDtrackLine()` constructs "track line" based on
+#' [UCSC guide](https://genome.ucsc.edu/FAQ/FAQformat.html#format1).
+#' It tries to turn on score display based on settings suggested in
+#' [IGV help form](https://groups.google.com/g/igv-help/c/IyBzO5_j5E8).
+#'
+#' @param name Name of the track
+#' @param score Scores of the track, for setting up score display limits.
+#' Although there is no upper limit, scores MUST be >= 0.
+#'
+#' @returns A string of "track line" without newline character.
+getBEDtrackLine <- function(name, score) {
+    # Sanity check
+    stopifnot(is.character(name))
+    stopifnot(is.numeric(score), all(score >= 0))
+    # Compute display limits
+    ulim <- max(score)
+    llim <- min(score)
+    # Return track line
+    paste("track",
+        paste0("name=", name),
+        "useScore=1",
+        paste0("viewLimits=", llim, ":", ulim),
+        "color=255,0,0",
+        sep = "\t"
+    )
 }

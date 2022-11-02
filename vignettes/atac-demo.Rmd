@@ -19,8 +19,8 @@ knitr::opts_chunk$set(
 
 Assay for Transposase-Accessible Chromatin using Sequencing (ATAC-seq) is an 
 alternative technique for assessing chromatin accessibility. In this method, 
-hyperactive Tn5 transposase inserts transposon into the genome and transposition 
-frequency depends mainly on 'genome accessibility'.
+hyperactive Tn5 transposase inserts transposon into the genome and 
+transposition frequency depends mainly on genome accessibility.
 
 After aligning the ATAC-seq reads to the genome, the following tasks need to be 
 performed for data interpretation:
@@ -34,23 +34,32 @@ While `ATACseqQC` package handles the quality control step satisfactorily,
 a well-documented and validated workflow is lacking for transposition event 
 counting and downstream differential analysis.
 
-`edgeCounter` fills this gap by providing functions for straightforward transposition 
-counts which may be used for downstream differential analysis by packages such as 
-`DESeq2`, `edgeR`, etc.
+`edgeCounter` fills this gap by providing functions for straightforward 
+transposition counts which may be used for downstream analyses including 
+visualization and differential accessibility analysis.
+
+For visualization, `edgeCounter` provides functions for generating 
+continuous genome coverage tracks (bigWig) and discrete scoring tracks (BED). 
+It interfaces with the `rtracklayer` Bioconductor package.
+
+For differential accessibility analysis, `edgeCounter` provides 
+ready-to-use `SummarizedExperiment` objects containing raw count data that 
+may be used as input to packages assuming negative binomial models 
+such as `DESeq2` and `edgeR`.
 
 # Goal of the vignette
 
 This vignette demonstrates a full workflow in which we:
 
-1. Perform a subset of QC tests provided by the `ATACseqQC` package
-2. Use `ATACseqQC` to shift the reads such that read edges (i.e., boundaries) 
-represent true transposition location
-3. Take the shifted reads and count transposition events given several example 
-genomic ranges
+1. Perform common QC tests with the `ATACseqQC` package.
+2. Count transposition events w.r.t. gene promoters using `edgeCounter`.
+3. Generate visualization tracks using `edgeCounter`.
+4. Differential analysis with the `DESeq2` package.
 
-For your own data, you need to first align and filter the ATAC-seq reads to get 
-BAM files of the alignment output. We assume that BAM files are already available 
-in this vignette.
+This vignette assumes that BAM alignment files are available as the 
+starting point. For suggestions on how to align and filter raw ATACseq 
+sequencing reads, you may refer to common sources such as 
+Galaxy ATACseq Guide
 
 # Sample dataset intro
 

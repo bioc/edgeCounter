@@ -28,6 +28,12 @@ and a GRanges/GRangesList with the target ranges for counting.
 \section{Details}{
 To extract edges of the samples use the \code{edgeExtract} function.
 This function supports parallel computing as set up by \code{\link[=ecParallel]{ecParallel()}}.
+\subsection{colData}{
+
+sampleID = IDs provided as names of the \code{edges} input list.
+edges.ir = Number of edges within the given ranges.
+edges.total = Number of edges in the original \code{edges} input.
+}
 }
 
 \examples{
