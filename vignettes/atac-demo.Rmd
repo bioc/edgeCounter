@@ -1,7 +1,13 @@
 
 ---
 title: "Analyzing ATAC-seq samples with edgeCounter"
-output: rmarkdown::html_vignette
+author: "Ye Yuan"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 4
+    theme: journal
 vignette: >
   %\VignetteIndexEntry{Analyzing ATAC-seq samples with edgeCounter}
   %\VignetteEngine{knitr::rmarkdown}
@@ -11,7 +17,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
     collapse = TRUE,
-    comment = "#>"
+    comment = "#>",
+    message = FALSE
 )
 ```
 
@@ -19,28 +26,37 @@ knitr::opts_chunk$set(
 
 Assay for Transposase-Accessible Chromatin using Sequencing (ATAC-seq) is an 
 alternative technique for assessing chromatin accessibility. In this method, 
-hyperactive Tn5 transposase inserts transposon into the genome and 
-transposition frequency depends mainly on genome accessibility.
+hyperactive Tn5 transposase inserts "transposons" into the genome. 
+Frequency of insertion depends on whether the DNA is stably bound by 
+nucleosomal proteins, transcriptional factors, etc. Because the inserted 
+transposon sequence is defined, one can identify transposition events by 
+sequencing PCR-amplified library with the transposon sequence primers. 
+For a better explanation on this technique, refer to 
+[Buenrostro et al., 2013](https://pubmed.ncbi.nlm.nih.gov/24097267/).
 
-After aligning the ATAC-seq reads to the genome, the following tasks need to be 
-performed for data interpretation:
+After aligning the ATAC-seq reads to the genome, 
+the following tasks need to be performed for data interpretation:
 
 1. Quality control assessment, which may be performed by `ATACseqQC` package
 2. Counting transposition events given genomic ranges of interest
-3. Perform differential analysis to understand how certain treatment affects 
-genome accessibility as measurement by the transposition event counts.
+3. Perform differential analysis to understand how 
+certain treatment affects genome accessibility as measured by 
+the transposition event counts.
 
-While `ATACseqQC` package handles the quality control step satisfactorily, 
-a well-documented and validated workflow is lacking for transposition event 
-counting and downstream differential analysis.
+While packages including 
+[`ATACseqQC`](https://pubmed.ncbi.nlm.nih.gov/29490630/) provides extensive 
+quality control assessments, a well-documented and validated workflow 
+is lacking for transposition event counting and downstream 
+differential analysis.
 
 `edgeCounter` fills this gap by providing functions for straightforward 
 transposition counts which may be used for downstream analyses including 
 visualization and differential accessibility analysis.
 
 For visualization, `edgeCounter` provides functions for generating 
-continuous genome coverage tracks (bigWig) and discrete scoring tracks (BED). 
-It interfaces with the `rtracklayer` Bioconductor package.
+continuous genome coverage tracks (bigWig) and discrete scoring tracks (BED) 
+exploiting the 
+[`rtracklayer`](https://pubmed.ncbi.nlm.nih.gov/19468054/) package.
 
 For differential accessibility analysis, `edgeCounter` provides 
 ready-to-use `SummarizedExperiment` objects containing raw count data that 
@@ -51,32 +67,28 @@ such as `DESeq2` and `edgeR`.
 
 This vignette demonstrates a full workflow in which we:
 
-1. Perform common QC tests with the `ATACseqQC` package.
+1. Perform common QC tests with `ATACseqQC`.
 2. Count transposition events w.r.t. gene promoters using `edgeCounter`.
 3. Generate visualization tracks using `edgeCounter`.
 4. Differential analysis with the `DESeq2` package.
 
 This vignette assumes that BAM alignment files are available as the 
-starting point. For suggestions on how to align and filter raw ATACseq 
-sequencing reads, you may refer to common sources such as 
-Galaxy ATACseq Guide
+starting point.
 
 # Sample dataset intro
 
-The sample dataset is from a series of experiments in which ~1,000 neurons from 
-Drosophila melanogaster brains are used for ATAC-seq. Only alignments close to 
-the housekeeping Gapdh1 gene are included (`dm6 Chr2R:7791200-7793600`) totaling 
-1194 reads (597 pairs) in order to reduce package size.
+The sample dataset is from a series of experiments in which ~1,000 neurons
+from Drosophila *melanogaster* brains are used for ATAC-seq. 
+Only alignments close to the housekeeping Gapdh1 gene are included 
+(`dm6 Chr2R:7791200-7793600`), totaling 1194 reads (597 pairs) 
+in order to reduce package size.
 
-Given the small input, we expect less-than-ideal quality control metrics. 
-However, key metrics such as read enrichment from transcription start sites should 
-show expected results - see `ATACseqQC` package for more details.
+Given the small input, we expect suboptimal quality control metrics. 
+However, key metrics such as read enrichment from transcription start sites
+should show expected results. Refer to `ATACseqQC` package for more details.
 
-**Important note:** To get a full picture of quality controls of your sample, you 
-should use the full alignment file instead of a small subset. Therefore, in
-Section '`ATACseqQC`: Quality controls and read shifting' we only document 
-the subset of QC plots we preferred and do not show the output figures.
-
+**Important note:** To get a full picture of quality controls of your sample, 
+full alignment files instead of small subsets should be used. 
 
 # Environment setup
 
@@ -93,8 +105,8 @@ sample.file <- system.file("extdata", "sample.near.Gapdh1.bam",
 # `ATACseqQC`: Quality controls and read shifting
 
 Initial quality controls such as fragment size distribution can be performed 
-using the original BAM file. Quality controls relative to genome landmarks (e.g., 
-TSS) is performed after shifting the alignments.
+using the original BAM file. Quality controls relative to 
+genome landmarks (e.g., TSS) is performed after shifting the alignments.
 
 ```{r ATACseqQC plots, echo=T, eval=F}
 # Fragment size distribution plot
@@ -126,25 +138,26 @@ plot(100 * (-9:10 - .5), tsse$values,
 ```
 
 `ATACseqQC` also offers nucleosome positioning by splitting the reads into
-nucleosome-free, monucleosome, etc.  This might be done by simply considering 
-fragment sizes or using a random forest model taking conservation scores 
-into account. Check vignette of `ATACseqQC` for more details.
+nucleosome-free, monucleosome, *etc.* This might be done 
+by simply considering fragment sizes or using a random forest model 
+taking conservation scores into account. 
+Refer to `ATACseqQC` package for more details.
 
 # Counting transposition event: genomic ranges of interest
 
 To perform differential accessibility analysis, we need to first think about 
 which genomic ranges to look at. For instance:
 
-1. Hypothesis-free: calling peaks with peak-callers such as `MACS3/MACS2` among 
-all samples. Then, form consensus peaks and look for differential accessibility 
-in the consensus peaks.
+1. Hypothesis-free: calling peaks with peak-callers such as `MACS3/MACS2` 
+among all samples. Then, form consensus peaks and look for 
+differential accessibility in the consensus peaks.
 
-2. Hypothesis-driven: you have a bunch of ranges in mind already, e.g., promoters 
-of all/selected genes, exon/intron regions of genes, etc.
+2. Hypothesis-driven: for instance, promoters of all/selected genes, 
+exon/intron regions of genes might be considered.
 
 As our sample data contains transposition events near gene Gapdh1, here we 
-demonstrate counting within Gapdh1 promoter versus gene body. Towards this end, 
-`GenomicFeatures` offered by Bioconductor is used.
+demonstrate counting within Gapdh1 promoter versus gene body. 
+Towards this end, Bioconductor `GenomicFeatures` is used.
 
 # Counting transposition events
 
@@ -181,34 +194,31 @@ rowRanges(counts)
 
 Extra functions provided for counting edges:
 
-- `edgeExtract` combined with `edgeExperimentFromCounts` allows caching the edges 
-from BAM files and perform counting with different ranges. Reduces IO load if you 
-plan to test different sets of ranges.
+- `edgeExtract` combined with `edgeExperimentFromCounts` allows 
+caching the edges from BAM files and perform counting with different ranges. 
+This reduces IO load if you plan to test different sets of ranges.
 
-- `ecParallel` for parallel computation control. This package adopts PSOCK cluster 
-offered by the `parallel` package of R core.
+- `ecParallel` for parallel computation control. 
+This package adopts PSOCK cluster by the R-core `parallel` package.
 
 # Characteristics of the transposition count data
 
-To perform differential analysis, we can adopt existing packages such as `DESeq2`, 
-`edgeR`, etc. We explain further with the `DESeq2` workflow. For details on the 
-`DESeq2` package please check out its well-written vignette.
+To perform differential analysis, we can adopt existing packages 
+such as `DESeq2`, `edgeR`, etc. Below, a simple `DESeq2` workflow is shown.
 
-Our count data needs to satisfy statistical assumptions. Considering negative
-binomial, this asks for estimating dispersion parameters and therefore a positive 
-correlation between the mean and variance of a given range.
+Our count data needs to satisfy statistical assumptions made by `DESeq2`. 
+To assess whether the counts may be modeled by negative binomial 
+distribution, once the count matrix is computed with `edgeExperiment` 
+or related functions, variance ~ mean relationship can be plotted 
+using the helper function `varMeanPlot`. 
+Here we show an example plot of a real dataset consisting 6 replicates 
+of an ATAC-seq experiment where the following ranges are counted:
 
-This is indeed typically the case - once the count matrix is computed with 
-`edgeExperiment` or related functions, variance ~ mean relationship can be plotted 
-using the helper function `varMeanPlot`. Here we show an example plot of a real 
-dataset consisting 6 replicates of an ATAC-seq experiment where the following 
-ranges are counted:
-
-1. Promoters of genes are computed (each row of the count matrix is an aggregate 
-count of ALL known promoters of a gene.)
+1. Promoters of genes are computed (each row of the count matrix is 
+an aggregate count of *all* known promoters of a gene.)
 2. Gene bodies
 
-```{r Getting promoter aggregates of genes}
+```{r Getting promoter aggregates of genes,warning=FALSE}
 # First, we get "promoter aggreates of genes"
 txs <- transcriptsBy(TxDb.Dmelanogaster.UCSC.dm6.ensGene, "gene")
 proms <- promoters(txs) # A GRangesList object
@@ -219,7 +229,7 @@ genes <- genes(TxDb.Dmelanogaster.UCSC.dm6.ensGene) # A GRanges object
 
 Due to package size consideration, data used to generate the plot is not 
 bundled with the package. For your application, make sure to run `edgeExtract` 
-to get your cached edges.
+to save your cached edges as variable `edges`.
 
 ```{r count mean variance relationship, echo=T, eval=F}
 expProms <- edgeExperimentFromCounts(edges, proms)
@@ -240,6 +250,32 @@ replayPlot(readRDS(system.file("extdata", "varMeanPlot.gene.body.rds",
 )))
 ```
 
+# Saving visualization tracks
+
+Two visualization tracks may be generated with ease with `edgeCounter`:
+
+1. `bigWig` track which saves genome-wide binned edge counts. Similar to 
+the genome coverage tracks typically used with other methods.
+2. `BED` track which saves positions and edge counts of the ranges.
+
+```{r Saving visualization tracks, echo=T, eval=F}
+# You need to provide chromosome sizes for bigwig track generation, 
+#   which can be retrieved by the `GenomeInfoDb` package.
+library(GenomeInfoDb)
+# `bigWig` track - binned edge counts genome-wide
+#   Here, bin width is 100bp and a filtering requiring count>=1 is used.
+export.edgeExtract(edges, base.path = ".", seqinfo = Seqinfo(genome = "dm6"),
+                   bin.width = 100, bin.min = 1)
+# `BED` track - posiotions and edge counts of the ranges
+export.edgeExperiment(expProms, base.path = ".")
+```
+
+# Differential analysis
+
+Now that raw edge counts are available you may perform any statistical 
+test to interrogate differential accessibility. We find that packages 
+such as `DESeq2` with default parameters may perform satisfactorily 
+given good consistency among replicates.
 
 # SessionInfo
 

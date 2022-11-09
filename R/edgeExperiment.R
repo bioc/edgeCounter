@@ -392,8 +392,8 @@ export.edgeExperiment <- function(edgeExp, base.path, norm = "epm_ir") {
 #' }
 #' @export
 export.edgeExtract <- function(edgeEx, base.path, bin.width = 20,
-    bin.min = 1, smooth.width = NULL,
-    seqinfo, norm = "epm") {
+                               bin.min = 1, smooth.width = NULL,
+                               seqinfo, norm = "epm") {
     # Sanity check - GRanges edgeEx, existent seqlengths, smooth
     stopifnot(
         inherits(edgeEx, "GRangesList"),
